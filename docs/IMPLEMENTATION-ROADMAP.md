@@ -29,10 +29,12 @@
 - ✅ `prompts/system-instruction-v4.1.md` (완료)
 - ✅ `schemas/notion-output.schema.json` (완료)
 - ✅ `docs/EDGE-CASES.md` (완료)
+- ✅ `docs/DB-DESIGN.md` (완료)
 - ⏳ §1.2 모델 비교 실험 결과 (1~2일)
 - ⏳ v4.2 instruction (edge-case 결정 4건 반영)
+- ⏳ DB 결정 5건 (DB-DESIGN §12) 컨펌
 
-**Exit criteria:** 4개 결정 사항(`docs/EDGE-CASES.md` 하단) 컨펌 + LLM 모델 픽스.
+**Exit criteria:** EDGE-CASES 4건 + DB-DESIGN 5건 컨펌 + LLM 모델 픽스.
 
 ---
 
@@ -74,7 +76,8 @@ src/
 │   ├── (app)/
 │   │   ├── onboarding/page.tsx     # STEP 1~3
 │   │   ├── today/page.tsx          # 입력 화면
-│   │   ├── history/page.tsx        # 과거 조회
+│   │   ├── trends/page.tsx         # 시계열 대시보드 (DB-DESIGN §6)
+│   │   ├── history/page.tsx        # Day별 원본 조회
 │   │   └── reports/[day]/page.tsx  # Day별 리포트
 │   └── api/
 │       ├── analyze/route.ts        # POST 멀티모달 분석
@@ -88,59 +91,48 @@ src/
 └── components/
     ├── DailyInputForm.tsx          # 사진+텍스트 업로드
     ├── ReportCard.tsx              # #공식용 리포트 렌더
-    └── ProgressBars.tsx            # 진행 바 시각화
+    ├── ProgressBars.tsx            # 진행 바 시각화
+    ├── TrendChart.tsx              # 라인 차트 + 이동평균 (Recharts/Visx)
+    └── CalendarHeatmap.tsx         # 월간 히트맵
 ```
 
 **Exit criteria:** `pnpm dev`로 빈 페이지 렌더 확인.
 
 ---
 
-### Phase 3 — 데이터 레이어 (2일)
+### Phase 3 — 데이터 레이어 (3일)
 
-**Supabase 스키마 (초안):**
+> **상세 설계는 [`docs/DB-DESIGN.md`](DB-DESIGN.md)** 참조.
+> 핵심: 일일 원본 JSON(`daily_records.payload`)과 시계열 정규화 테이블(`metrics`)을
+> 듀얼로 두고, 트리거로 payload → metrics 자동 분해.
+> 주/월/연 집계는 머티리얼라이즈드 뷰로 사전 계산 → 트렌드 차트 즉시 응답.
 
-```sql
--- 사용자 프로필 (온보딩 결과)
-create table profiles (
-  id uuid primary key references auth.users,
-  start_date date not null,
-  weight_kg numeric not null,
-  goals jsonb not null,             -- {weight_loss, fitness, routine}
-  daily_check_routines jsonb not null,
-  base_metabolism_kcal int default 1500,
-  created_at timestamptz default now()
-);
+**테이블 구성 (총 5 + 정의 1 + MV 3):**
 
--- 일일 기록 (#노션용 JSON과 1:1 매핑)
-create table daily_records (
-  id uuid primary key default gen_random_uuid(),
-  user_id uuid references profiles not null,
-  day int not null,
-  date date not null,
-  payload jsonb not null,           -- schemas/notion-output.schema.json 준수
-  is_locked boolean default false,  -- §1.2 마감 여부
-  created_at timestamptz default now(),
-  updated_at timestamptz default now(),
-  unique(user_id, day)
-);
-
--- 첨부 파일 (사진)
-create table record_attachments (
-  id uuid primary key default gen_random_uuid(),
-  record_id uuid references daily_records on delete cascade,
-  storage_path text not null,
-  mime_type text not null,
-  uploaded_at timestamptz default now()
-);
-```
+| 테이블 | 역할 |
+| --- | --- |
+| `profiles` | 사용자 프로필 + 타임존/하루 경계 |
+| `challenges` | 다회차 챌린지 (1:N) — 한 사용자 여러 챌린지 |
+| `daily_records` | v4.1 #노션용 payload 원본 (audit) |
+| `metric_definitions` | metric_type lookup (체중/수면/물/...) |
+| `metrics` | 정규화 시계열 (분석의 핵심) |
+| `record_attachments` | 사진 |
+| `weekly/monthly/yearly_summary_mv` | 사전 집계 |
 
 **Tasks:**
-1. Supabase 프로젝트 생성 + RLS 정책 (각 user 본인 행만)
-2. 마이그레이션 파일 작성 (`supabase/migrations/`)
-3. Storage 버킷 `record-photos` (private)
-4. `lib/supabase/queries.ts` 타입 추론 클라이언트
+1. Supabase 프로젝트 생성, `pg_cron` 확장 활성화
+2. 마이그레이션 — `docs/DB-DESIGN.md` §4 DDL 그대로 적용
+3. `metric_definitions` 시드 데이터 13개 INSERT
+4. payload → metrics 분해 트리거 (`fn_explode_payload_to_metrics`)
+5. RLS 정책 (모든 테이블 user_id 격리)
+6. Storage 버킷 `record-photos` (private)
+7. 머티리얼라이즈드 뷰 3개 + cron 갱신 잡 (매일 03:00 KST)
+8. `lib/supabase/queries.ts` — Zod 스키마 + 자주 쓸 6개 쿼리 (DB-DESIGN §6)
 
-**Exit criteria:** 빈 DB에 더미 row insert/select RLS 통과.
+**Exit criteria:**
+- 더미 daily_record 1건 insert → 트리거가 metrics 12행 자동 생성 확인
+- `select * from monthly_summary_mv where user_id = ...` 1초 이내 응답
+- RLS: 다른 user_id로 시도 시 0행 반환
 
 ---
 
@@ -187,6 +179,8 @@ export const validate = ajv.compile(schema);
 3. 점수 계산기 (LLM 출력 vs 자체 계산 비교 → 불일치 시 자체 계산 우선)
 4. 머지 로직 (EDGE-CASES §1.1 표 그대로 구현)
 5. Day 번호 자동 계산 (start_date 기준)
+6. `daily_records.payload` upsert → DB 트리거가 `metrics` 자동 분해 (DB-DESIGN §7)
+7. 체중계 사진 OCR 결과는 `metrics`에 직접 INSERT (`source = 'photo_inferred'`)
 
 **Exit criteria:** `curl`로 사진+텍스트 보내면 valid JSON + markdown 응답.
 
@@ -194,13 +188,18 @@ export const validate = ajv.compile(schema);
 
 ### Phase 5 — UI (5~7일)
 
-**우선순위 화면:**
+**우선순위 화면 (6개):**
 
 1. **온보딩 (`/onboarding`)** — 6개 질문 단계별 카드, 자유 입력 파싱(72 → 72kg)
 2. **오늘 입력 (`/today`)** — 드래그&드롭 사진 + 텍스트 영역 + Day 자동 표시
 3. **리포트 카드 (`/reports/[day]`)** — instruction의 #공식용 템플릿을 React 컴포넌트로 (진행바 포함)
-4. **히스토리 (`/history`)** — 캘린더 뷰 + 주간 요약
-5. **랜딩 (`/`)** — 포트폴리오용 demo URL
+4. **트렌드 대시보드 (`/trends`)** — DB-DESIGN §6 쿼리 기반:
+   - 체중·수면·물·점수 라인 차트 (기간 토글 30D/90D/1Y/All)
+   - 7일 이동평균 오버레이
+   - 월간 히트맵 (캘린더 뷰)
+   - 챌린지 1차·2차 비교 (다회차 시)
+5. **히스토리 (`/history`)** — Day별 원본 카드 + 검색
+6. **랜딩 (`/`)** — 포트폴리오용 demo URL
 
 **디자인 원칙:**
 
@@ -287,7 +286,7 @@ export const validate = ajv.compile(schema);
 | 시점 | 결정 사항 |
 | --- | --- |
 | Phase 1 끝 | LLM 모델 픽스 (비교 결과 공유 후) |
-| Phase 3 시작 전 | DB 스키마 컨펌 (필드 추가/제거 의향?) |
+| Phase 3 시작 전 | DB 스키마 컨펌 (`docs/DB-DESIGN.md` §12 결정 5건) |
 | Phase 5 중간 | UI 시안 — 직접 그리실지, shadcn 기본형으로 갈지 |
 | Phase 6 시작 전 | Notion 연동 — 정말 필요한지, 후순위로 미룰지 |
 | Phase 7 끝 | 공개 범위 — public URL / private demo |

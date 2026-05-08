@@ -12,6 +12,7 @@
 | [`prompts/system-instruction-v4.1.md`](prompts/system-instruction-v4.1.md) | Gemini Gem 시스템 프롬프트 v4.1 — *어떻게* |
 | [`schemas/notion-output.schema.json`](schemas/notion-output.schema.json) | `#노션용` 출력 JSON Schema — *파서 보호* |
 | [`docs/EDGE-CASES.md`](docs/EDGE-CASES.md) | v4.1 미명시 경계 조건 — *결정 대기 4건 포함* |
+| [`docs/DB-DESIGN.md`](docs/DB-DESIGN.md) | 시계열 DB 설계 — *년/월/일 트렌드 분석* |
 | [`docs/IMPLEMENTATION-ROADMAP.md`](docs/IMPLEMENTATION-ROADMAP.md) | 반응형 웹앱 구현 로드맵 — *2~3주 MVP* |
 
 ## 🧱 핵심 기능 (요약)
