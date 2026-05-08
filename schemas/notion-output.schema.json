@@ -1,0 +1,160 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/songpoo/wellness-challenge/schemas/notion-output.schema.json",
+  "title": "45Days Challenge Coach — Notion Output v4.1",
+  "description": "#노션용 출력의 정식 스키마. 봇이 생성한 JSON을 Notion DB에 적재하기 전 유효성 검증에 사용한다. 키 추가/삭제 금지.",
+  "oneOf": [
+    { "$ref": "#/$defs/Record" },
+    { "$ref": "#/$defs/Error" }
+  ],
+  "$defs": {
+    "Record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "Date",
+        "Day",
+        "Week",
+        "Condition",
+        "Meal - Breakfast",
+        "Meal - Lunch",
+        "Meal - Snack",
+        "Meal - Dinner",
+        "Calories (intake)",
+        "Protein (g)",
+        "Water (L)",
+        "Workout Type",
+        "Workout Duration (min)",
+        "Workout Calories (burn)",
+        "Sleep (hr)",
+        "Goal ① Weight Loss (%)",
+        "Goal ② Fitness (%)",
+        "Goal ③ Routine (%)",
+        "Action Score (/3)",
+        "Calorie Balance (±kcal)",
+        "Routine Check (count)",
+        "Memo",
+        "Insight",
+        "Coach Comment"
+      ],
+      "properties": {
+        "Date": {
+          "type": "string",
+          "format": "date",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "description": "ISO 8601 date (YYYY-MM-DD)."
+        },
+        "Day": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 90,
+          "description": "챌린지 일차. 1~45 정상 범위, 46~90 연장 모드."
+        },
+        "Week": {
+          "type": "string",
+          "pattern": "^Week \\d{1,2}$",
+          "description": "예: 'Week 1', 'Week 7'."
+        },
+        "Condition": {
+          "type": "string",
+          "enum": ["좋음", "보통", "나쁨", "회복일"],
+          "description": "사용자 컨디션 라벨."
+        },
+        "Meal - Breakfast": { "$ref": "#/$defs/MealString" },
+        "Meal - Lunch":     { "$ref": "#/$defs/MealString" },
+        "Meal - Snack":     { "$ref": "#/$defs/MealString" },
+        "Meal - Dinner":    { "$ref": "#/$defs/MealString" },
+        "Calories (intake)": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 6000,
+          "description": "총 섭취 칼로리. 6000 초과 입력은 #공식용에서 경고 후 6000으로 클램프."
+        },
+        "Protein (g)": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 500
+        },
+        "Water (L)": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 10
+        },
+        "Workout Type": {
+          "type": "string",
+          "description": "예: 'HIIT + 코어 운동'. 운동 안 한 날은 '미수행'."
+        },
+        "Workout Duration (min)": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 600
+        },
+        "Workout Calories (burn)": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3000
+        },
+        "Sleep (hr)": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 24
+        },
+        "Goal ① Weight Loss (%)": { "$ref": "#/$defs/Percent" },
+        "Goal ② Fitness (%)":     { "$ref": "#/$defs/Percent" },
+        "Goal ③ Routine (%)":     { "$ref": "#/$defs/Percent" },
+        "Action Score (/3)": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 3,
+          "description": "(목표1+목표2+목표3)/300*3, 즉 0~3 스케일."
+        },
+        "Calorie Balance (±kcal)": {
+          "type": "integer",
+          "minimum": -3000,
+          "maximum": 3000,
+          "description": "섭취 - (운동소모 + 기초대사). 음수면 적자(감량 친화)."
+        },
+        "Routine Check (count)": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 7,
+          "description": "Daily Check 7개 중 수행한 개수."
+        },
+        "Memo": {
+          "type": "string",
+          "maxLength": 1000
+        },
+        "Insight": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "Coach Comment": {
+          "type": "string",
+          "maxLength": 800
+        }
+      }
+    },
+    "Error": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["error"],
+      "properties": {
+        "error": {
+          "type": "string",
+          "enum": ["invalid_format", "insufficient_input", "calculation_failed"]
+        }
+      }
+    },
+    "MealString": {
+      "type": "string",
+      "description": "예: '닭가슴살 샐러드 (450 kcal)'. 식사 안 함은 '없음'.",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "Percent": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    }
+  }
+}
