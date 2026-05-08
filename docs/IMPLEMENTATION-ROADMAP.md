@@ -44,18 +44,32 @@
 
 **목표:** "사진 + 텍스트 → JSON" 파이프라인이 instruction 그대로 돌아가는지 확인.
 
-**Tasks:**
-1. `scripts/poc-claude.ts` — Claude Sonnet 4.6 + Vision으로 시스템 프롬프트 호출
-2. `scripts/poc-gemini.ts` — Gemini 2.5 Pro 동일 호출
-3. `tests/fixtures/` — 한식 사진 10장 + 운동 사진 5장 + 체중계 사진 3장 (실제 데이터)
-4. 비교 매트릭스 작성:
-   - 음식 종류 정확도 (정답률 %)
-   - 칼로리 추정 오차 (±%)
-   - JSON 유효성 (Schema 통과율)
-   - 평균 응답 시간 (초)
-   - 1,000회 호출 비용 ($)
+**환경 (✅ 셋업 완료):**
+- `package.json` + `tsconfig.json` + `.env.example`
+- `scripts/poc-claude.ts` — Claude Sonnet 4.6 + Prompt Caching + 스트리밍 TTFT 측정
+- `scripts/poc-gemini.ts` — Gemini 2.5 Pro 동일 인터페이스
+- `scripts/compare.ts` — 7개 지표 자동 집계 + 우세 모델 추천
+- `scripts/lib/` — fixtures 로더, JSON Schema validator, 결과 저장기
+- `tests/fixtures/README.md` — 18장 촬영 가이드 (식단 10 + 운동 5 + 체중계 3)
+- `tests/fixtures/ground-truth.template.json` — 정답 라벨/칼로리 범위 채울 템플릿
 
-**Exit criteria:** 비교표 → 모델 1개 픽스. v4.1 instruction이 픽스된 모델에서 즉시 동작.
+**남은 Tasks (노바님 작업):**
+1. ⏳ API 키 발급 (Anthropic + Google AI Studio) → `.env`
+2. ⏳ 사진 18장 촬영 (`tests/fixtures/README.md` §1~4 가이드)
+3. ⏳ EXIF GPS strip (`exiftool -all= -r tests/fixtures/`)
+4. ⏳ `ground-truth.json` 작성 (template 복사 후 18 entries)
+5. ⏳ `npm run poc:claude && npm run poc:gemini && npm run poc:compare`
+
+**비교 매트릭스 자동 산출 지표 (7개):**
+- JSON Schema 통과율 (≥ 95%)
+- 음식 라벨 정확도 (≥ 80%)
+- 칼로리 추정 적중률 (≥ 70%, ground-truth 범위 내)
+- 운동 키워드 적중률 (≥ 75%)
+- 체중 OCR 정확도 (≥ 90%, ±0.3kg)
+- 평균 TTFT / 전체 응답 시간 (< 2s / < 8s)
+- 호출당 비용 (< $0.015)
+
+**Exit criteria:** `tests/fixtures/results/MATRIX.md` 생성 + 우세 모델 픽스.
 
 **❓ 결정 필요:** Claude / Gemini / 둘 다 지원 (BYOK 패턴)?
 > **제안:** MVP는 1개로. 이후 BYOK는 v2 기능.
@@ -303,11 +317,11 @@ export const validate = ajv.compile(schema);
 ## 4. 첫 한 주 액션 아이템
 
 ```
-[ ] Day 1 - 모델 비교 PoC 환경 셋업 (Claude API key, Gemini API key)
-[ ] Day 2 - 한식 fixture 사진 15장 직접 촬영 (테스트 셋)
-[ ] Day 3 - 비교 매트릭스 산출 → 모델 픽스
+[x] Day 1 - PoC 환경 셋업 (scripts/poc-{claude,gemini,compare}.ts, fixtures 가이드)
+[ ] Day 2 - API 키 발급 + 사진 18장 촬영 + ground-truth.json 작성
+[ ] Day 3 - npm run poc:* 실행 → MATRIX.md 산출 → 모델 픽스
 [ ] Day 4 - Next.js 프로젝트 + Supabase 셋업
-[ ] Day 5 - 스키마 마이그레이션 + RLS
+[ ] Day 5 - DB 마이그레이션 + RLS + payload→metrics 트리거
 [ ] Day 6 - /api/analyze 1차 동작 (curl 테스트)
 [ ] Day 7 - 온보딩 페이지 첫 화면
 ```

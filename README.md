@@ -29,3 +29,16 @@
 
 - 설계: v4.1 (Gemini 1.5 Pro / 2.0 Flash 최적화)
 - 구현: 로드맵 v1.0 — 반응형 웹앱(Next.js) 타겟, 2~3주 MVP
+- 진행 단계: **Phase 1 PoC 환경 셋업 완료** — fixture 18장 촬영 대기
+
+## 🧪 PoC 빠른 실행
+
+```bash
+npm install
+cp .env.example .env  # ANTHROPIC_API_KEY, GOOGLE_AI_API_KEY 채우기
+# tests/fixtures/README.md 따라 사진 18장 촬영
+cp tests/fixtures/ground-truth.template.json tests/fixtures/ground-truth.json  # 후 작성
+npm run poc:claude   # Claude Sonnet 4.6
+npm run poc:gemini   # Gemini 2.5 Pro
+npm run poc:compare  # tests/fixtures/results/MATRIX.md 생성
+```

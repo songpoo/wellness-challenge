@@ -1,0 +1,154 @@
+{
+  "$comment": "촬영 후 이 파일을 ground-truth.json으로 복사해 18개 entry를 채우세요. README.md §5 참조.",
+  "fixtures": [
+    {
+      "id": "meal-01-bibimbap",
+      "file": "meals/meal-01-bibimbap.jpg",
+      "category": "meal",
+      "user_text": "Day 1. 비빔밥 한 그릇. #노션용",
+      "expected": {
+        "labels": ["비빔밥"],
+        "kcal_min": 550,
+        "kcal_max": 750,
+        "protein_g_min": 15,
+        "protein_g_max": 25,
+        "notes": "한 그릇 기준 600~700kcal 평균"
+      }
+    },
+    {
+      "id": "meal-02-noodle",
+      "file": "meals/meal-02-noodle.jpg",
+      "category": "meal",
+      "user_text": "Day 2. 점심 면 종류. #노션용",
+      "expected": {
+        "labels": ["국수", "면"],
+        "kcal_min": 0,
+        "kcal_max": 0,
+        "notes": "TODO: 실제 메뉴 확정 후 칼로리 범위 채울 것"
+      }
+    },
+    {
+      "id": "meal-03-stew",
+      "file": "meals/meal-03-stew.jpg",
+      "category": "meal",
+      "user_text": "Day 3. 저녁 찌개. #노션용",
+      "expected": { "labels": ["찌개"], "kcal_min": 0, "kcal_max": 0, "notes": "TODO" }
+    },
+    {
+      "id": "meal-04-bunsik",
+      "file": "meals/meal-04-bunsik.jpg",
+      "category": "meal",
+      "user_text": "Day 4. 분식. #노션용",
+      "expected": { "labels": [], "kcal_min": 0, "kcal_max": 0, "notes": "TODO" }
+    },
+    {
+      "id": "meal-05-western",
+      "file": "meals/meal-05-western.jpg",
+      "category": "meal",
+      "user_text": "Day 5. 양식. #노션용",
+      "expected": { "labels": [], "kcal_min": 0, "kcal_max": 0, "notes": "TODO" }
+    },
+    {
+      "id": "meal-06-protein",
+      "file": "meals/meal-06-protein.jpg",
+      "category": "meal",
+      "user_text": "Day 6. 단백질 식단. #노션용",
+      "expected": {
+        "labels": [],
+        "kcal_min": 0,
+        "kcal_max": 0,
+        "protein_g_min": 0,
+        "protein_g_max": 0,
+        "notes": "TODO — 단백질 g 정확도 검증 핵심"
+      }
+    },
+    {
+      "id": "meal-07-dessert",
+      "file": "meals/meal-07-dessert.jpg",
+      "category": "meal",
+      "user_text": "Day 7. 간식. #노션용",
+      "expected": { "labels": [], "kcal_min": 0, "kcal_max": 0, "notes": "TODO" }
+    },
+    {
+      "id": "meal-08-multi",
+      "file": "meals/meal-08-multi.jpg",
+      "category": "meal",
+      "user_text": "Day 8. 회식 한 상. #노션용",
+      "expected": { "labels": [], "kcal_min": 0, "kcal_max": 0, "notes": "TODO — 합산 정확도 검증" }
+    },
+    {
+      "id": "meal-09-occluded",
+      "file": "meals/meal-09-occluded.jpg",
+      "category": "meal",
+      "user_text": "Day 9. 식사. #노션용",
+      "expected": { "labels": [], "kcal_min": 0, "kcal_max": 0, "notes": "TODO — 부분 가림" }
+    },
+    {
+      "id": "meal-10-lowlight",
+      "file": "meals/meal-10-lowlight.jpg",
+      "category": "meal",
+      "user_text": "Day 10. 식사. #노션용",
+      "expected": { "labels": [], "kcal_min": 0, "kcal_max": 0, "notes": "TODO — 저조도/흐림" }
+    },
+    {
+      "id": "workout-01-gym",
+      "file": "workouts/workout-01-gym.jpg",
+      "category": "workout",
+      "user_text": "Day 11. 헬스장 30분. #노션용",
+      "expected": {
+        "workout_type_keywords": ["헬스", "근력", "스쿼트"],
+        "duration_min": 30,
+        "notes": "TODO — 기구 종류 적기"
+      }
+    },
+    {
+      "id": "workout-02-running",
+      "file": "workouts/workout-02-running.jpg",
+      "category": "workout",
+      "user_text": "Day 12. 러닝. #노션용",
+      "expected": { "workout_type_keywords": ["러닝", "달리기"], "duration_min": 0, "notes": "TODO" }
+    },
+    {
+      "id": "workout-03-home",
+      "file": "workouts/workout-03-home.jpg",
+      "category": "workout",
+      "user_text": "Day 13. 홈트. #노션용",
+      "expected": { "workout_type_keywords": ["홈트", "요가", "덤벨"], "duration_min": 0, "notes": "TODO" }
+    },
+    {
+      "id": "workout-04-class",
+      "file": "workouts/workout-04-class.jpg",
+      "category": "workout",
+      "user_text": "Day 14. 필라테스 클래스. #노션용",
+      "expected": { "workout_type_keywords": ["필라테스", "요가"], "duration_min": 0, "notes": "TODO" }
+    },
+    {
+      "id": "workout-05-walk",
+      "file": "workouts/workout-05-walk.jpg",
+      "category": "workout",
+      "user_text": "Day 15. 만보 걷기. #노션용",
+      "expected": { "workout_type_keywords": ["걷기", "산책"], "duration_min": 0, "notes": "TODO" }
+    },
+    {
+      "id": "scale-01-clear",
+      "file": "scales/scale-01-clear.jpg",
+      "category": "scale",
+      "user_text": "오늘 체중. #노션용",
+      "expected": { "weight_kg": 0, "notes": "TODO — 정확한 kg" }
+    },
+    {
+      "id": "scale-02-angled",
+      "file": "scales/scale-02-angled.jpg",
+      "category": "scale",
+      "user_text": "오늘 체중. #노션용",
+      "expected": { "weight_kg": 0, "notes": "TODO" }
+    },
+    {
+      "id": "scale-03-bodycomp",
+      "file": "scales/scale-03-bodycomp.jpg",
+      "category": "scale",
+      "user_text": "체중 + 체지방 측정. #노션용",
+      "expected": { "weight_kg": 0, "notes": "TODO — 체지방·근육량 추가 측정 가능 시" }
+    }
+  ]
+}

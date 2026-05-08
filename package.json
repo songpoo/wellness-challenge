@@ -1,0 +1,29 @@
+{
+  "name": "wellness-challenge",
+  "version": "0.1.0",
+  "private": true,
+  "description": "45Days Challenge Coach — PoC scripts for model comparison (Phase 1).",
+  "type": "module",
+  "scripts": {
+    "poc:claude": "tsx scripts/poc-claude.ts",
+    "poc:gemini": "tsx scripts/poc-gemini.ts",
+    "poc:all": "npm run poc:claude && npm run poc:gemini",
+    "poc:compare": "tsx scripts/compare.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.40.0",
+    "@google/generative-ai": "^0.21.0",
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
+    "dotenv": "^16.4.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

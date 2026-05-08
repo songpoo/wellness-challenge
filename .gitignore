@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+
+# Env
+.env
+.env.local
+
+# Build
+dist/
+.next/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# PoC outputs (results vary per run, ground-truth is committed)
+tests/fixtures/results/
