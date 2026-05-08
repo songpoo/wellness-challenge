@@ -4,11 +4,14 @@
 
 **컨셉:** Self-Architecture. 기록의 번거로움은 기술에게, 삶의 주도권은 사용자에게.
 
+**분류:** AI Native — 멀티모달 분석·점수 산출·코칭 코멘트가 핵심 가치. 데이터는 **Supabase Postgres가 주 DB**이며, Notion은 *개인 사용자 export 옵션*입니다.
+
 ## 📂 문서
 
 | 문서 | 설명 |
 | --- | --- |
 | [`docs/PRD-v4.1.md`](docs/PRD-v4.1.md) | 제품 요구사항 문서 (PRD) & User Stories — *왜/무엇* |
+| [`docs/AI-PRODUCT-SPEC.md`](docs/AI-PRODUCT-SPEC.md) | AI Native 스펙 6영역 — *모델·보안·규제 결정* |
 | [`prompts/system-instruction-v4.1.md`](prompts/system-instruction-v4.1.md) | Gemini Gem 시스템 프롬프트 v4.1 — *어떻게* |
 | [`schemas/notion-output.schema.json`](schemas/notion-output.schema.json) | `#노션용` 출력 JSON Schema — *파서 보호* |
 | [`docs/EDGE-CASES.md`](docs/EDGE-CASES.md) | v4.1 미명시 경계 조건 — *결정 대기 4건 포함* |

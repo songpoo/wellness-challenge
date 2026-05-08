@@ -30,11 +30,13 @@
 - ✅ `schemas/notion-output.schema.json` (완료)
 - ✅ `docs/EDGE-CASES.md` (완료)
 - ✅ `docs/DB-DESIGN.md` (완료)
+- ✅ `docs/AI-PRODUCT-SPEC.md` (완료)
 - ⏳ §1.2 모델 비교 실험 결과 (1~2일)
 - ⏳ v4.2 instruction (edge-case 결정 4건 반영)
 - ⏳ DB 결정 5건 (DB-DESIGN §12) 컨펌
+- ⏳ AI 결정 6건 (AI-PRODUCT-SPEC 하단) 컨펌
 
-**Exit criteria:** EDGE-CASES 4건 + DB-DESIGN 5건 컨펌 + LLM 모델 픽스.
+**Exit criteria:** EDGE-CASES 4건 + DB-DESIGN 5건 + AI-SPEC 6건 컨펌 + LLM 모델 픽스.
 
 ---
 
@@ -142,16 +144,23 @@ src/
 
 ```
 1. 인증 확인 → user_id 추출
-2. multipart/form-data로 텍스트 + 사진(N장) 수신
-3. Storage에 사진 업로드 → URL 획득
-4. lib/prompts에서 system-instruction-v4.1.md 로드
-5. lib/llm/[claude|gemini].ts 호출 (시스템 프롬프트 + user message + image_urls)
-6. 응답 파싱 → JSON Schema validator (Ajv 또는 Zod)
+2. Rate limit 체크 (Upstash sliding window — 일 50, 분 5)
+3. multipart/form-data로 텍스트 + 사진(N장) 수신
+4. 사진 EXIF GPS strip (Sharp.js, 클라이언트 단에서 1차)
+5. 입력 인젝션 1차 필터 (정규식 — AI-SPEC §5)
+6. Storage에 사진 업로드 → URL 획득
+7. lib/prompts에서 system-instruction-v4.1.md 로드 (Prompt Caching 활용)
+8. lib/llm/[claude|gemini].ts 호출 (시스템 프롬프트 + user 메시지 + image_urls)
+   - 사용자 입력은 <user_input>...</user_input> 태그 wrap
+9. 응답 파싱 → JSON Schema validator (Ajv)
    - 실패 시 1회 retry (more strict instruction)
    - 재실패 시 {"error": "invalid_format"} 저장
-7. lib/score 로 행동 점수 검증 (LLM 출력 검산)
-8. daily_records upsert (같은 day면 머지 — EDGE-CASES §1.1)
-9. 응답 반환 (markdown report + JSON)
+10. lib/score 로 행동 점수 검증 (LLM 출력 검산)
+11. 코멘트 toxicity 체크 (자체 키워드 필터)
+12. daily_records upsert (같은 day면 머지 — EDGE-CASES §1.1)
+    → 트리거가 metrics 자동 분해 (DB-DESIGN §7)
+13. audit_logs 기록 (호출자·모델·토큰·비용)
+14. 응답 반환 (markdown report 스트리밍 + JSON)
 ```
 
 **핵심 파일:**
@@ -207,6 +216,19 @@ export const validate = ajv.compile(schema);
 - 다크모드 기본 (운동/저녁 시간대 사용 빈도)
 - 입력 폼 → 응답까지 **체감 5초 이내** (스트리밍 응답으로 점진 렌더)
 
+**스택 결정 — UI 프레임워크:**
+
+| 후보 | 채택? | 사유 |
+| --- | --- | --- |
+| **shadcn/ui + Tailwind CSS** | ✅ | (1) 복붙 방식 = 커스터마이징 자유도 최고, (2) Tokens Studio + Tailwind 생태계 최강, (3) 노바님의 [`songpoo/multi-tokens`](https://github.com/songpoo/multi-tokens) 디자인 토큰을 Style Dictionary 변환으로 `tailwind.config.ts`에 직결, (4) 모바일 웹 → React Native 확장 시 **NativeWind**로 클래스 그대로 재사용 가능, (5) 포트폴리오 시그널(최신 React 생태계) |
+| gluestack-ui | ❌ | 웹+앱 동시 개발 시 강점이지만 MVP는 웹 단독 → 코드 공유 이점 미발현. 자유도 ↓ |
+| Tamagui | ❌ | 성능 강점은 본 MVP 규모에서 의미 없음. 학습곡선 ROI 부정적 |
+
+**확장 경로 (v2 모바일 앱):**
+- Web → React Native(Expo) 마이그레이션 시 NativeWind로 같은 Tailwind 클래스 사용
+- shadcn/ui 컴포넌트는 1:1 대응 안 되지만, Radix Primitives → React Native ARIA 매핑 패턴 정립되어 있음
+- **이번 MVP에서 컴포넌트를 작성할 때 `className` 의존도를 최대화**하여 RN 이전 비용 최소화
+
 **Exit criteria:** 본인 휴대폰으로 1주일 실사용 → 마찰 지점 < 3개.
 
 ---
@@ -236,6 +258,16 @@ export const validate = ajv.compile(schema);
 5. README 영어 버전 추가 (글로벌 어필)
 6. `/showcase` — 실제 본인 챌린지 데이터 1주일 분량 공개 (포트폴리오 effective)
 
+**AI Native 컴플라이언스 작업 (AI-PRODUCT-SPEC.md 기반):**
+
+7. **AI 라벨링** — 모든 응답 카드 🤖 + "AI 분석 결과" 캡션
+8. **EU AI Act 대비 페이지** `/about/ai` — 모델 정보·데이터셋·인간감독 절차
+9. **건강 면책 문구** — 코치 코멘트 하단 강제 삽입
+10. **약관·개인정보처리방침** — PII·LLM 전송·데이터 보존 명시 (AI-SPEC §5,6)
+11. **사용자 정정 UI** — 라벨/점수 클릭 → 수정 → `metrics.source = 'manual_correction'`
+12. **`/admin/metrics` 대시보드** — JSON Schema 통과율, TTFT, 일일 비용
+13. **Sentry + audit_logs** — 에러 추적 + 감사 로그 30일
+
 **Exit criteria:** 배포 URL 친구 3명에게 공유 → 첫 입력까지 도달률 100%.
 
 ---
@@ -247,8 +279,11 @@ export const validate = ajv.compile(schema);
 | LLM 응답이 JSON Schema 자주 깨짐 | 중 | 고 | Phase 1에서 측정, function calling/structured output API 사용 |
 | 한식 라벨링 부정확 | 중 | 중 | 사용자 정정 UI를 1급 기능으로 (EDGE-CASES §2.1) |
 | 사진 업로드 비용/속도 | 저 | 중 | Vercel 5MB 제한 → 클라이언트 리사이즈 (max 1024px) |
-| API 키 노출 | 저 | 고 | 모든 LLM 호출 서버 라우트 경유, env 분리 |
-| Vision 비용 폭주 | 중 | 중 | rate limit + 사용자별 일일 호출 cap (50회) |
+| API 키 노출 | 저 | 고 | 모든 LLM 호출 서버 라우트 경유, env 분리 (AI-SPEC §5) |
+| Vision 비용 폭주 | 중 | 중 | rate limit + 사용자별 일일 호출 cap (50회) + 월 예산 $50 자동 차단 |
+| 프롬프트 인젝션 | 중 | 고 | role 분리 + 정규식 필터 + Schema 검증 3단 (AI-SPEC §5) |
+| PII가 LLM 학습에 사용됨 | 중 | 고 | Anthropic/Google opt-out 검증 + Vertex AI 우선 |
+| EU AI Act 미준수 | 저 | 중 | Phase 7에 라벨링·고지·면책 일괄 적용 (AI-SPEC §6) |
 | 포트폴리오로만 끝 (사용자 0명) | 고 | 저 | OK — 본인 챌린지 완주가 1차 검증, 공개는 부수적 |
 
 ---

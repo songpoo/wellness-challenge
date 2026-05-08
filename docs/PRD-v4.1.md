@@ -11,6 +11,8 @@
 - **제품명**: 🏋🏻‍♂️ 45Days Challenge Coach (v4.1)
 - **슬로건**: "기록의 번거로움은 기술에게, 삶의 주도권은 당신에게."
 - **핵심 가치**: **Self-Architecture**. 사용자가 복잡한 건강 데이터를 직접 관리하는 스트레스에서 벗어나, AI가 설계한 시스템 안에서 실질적인 안도감과 성취감을 느끼게 함.
+- **AI 분류**: **AI Native** — 멀티모달 분석·점수 산출·코치 코멘트가 핵심. AI 빠지면 단순 수기 트래커. 상세 스펙은 [`docs/AI-PRODUCT-SPEC.md`](AI-PRODUCT-SPEC.md) 참조.
+- **데이터 아키텍처**: **Supabase Postgres가 주 DB**, Notion 연동은 *개인 사용자가 자기 워크스페이스로 가져가는 export 옵션*. 다중 사용자 환경에서 PO 분석·집계는 모두 Supabase 기반. 상세는 [`docs/DB-DESIGN.md`](DB-DESIGN.md).
 
 ### 2. 타겟 유저 (Target Audience)
 
